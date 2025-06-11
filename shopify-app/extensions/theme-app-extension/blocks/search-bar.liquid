@@ -1,0 +1,42 @@
+{% schema %}
+{
+  "name": "Boost Search Bar",
+  "target": "section",
+  "stylesheet": "search-bar.css",
+  "javascript": "search-bar.js",
+  "settings": [
+    {
+      "type": "text",
+      "id": "placeholder",
+      "label": "Search placeholder",
+      "default": "Search products..."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_filters",
+      "label": "Show filters",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        {
+          "value": "horizontal",
+          "label": "Horizontal"
+        },
+        {
+          "value": "vertical",
+          "label": "Vertical"
+        }
+      ],
+      "default": "horizontal"
+    }
+  ]
+}
+{% endschema %}
+
+<div class="boost-search-bar" data-layout="{{ block.settings.layout }}">
+  {% render 'boost-search-widget' %}
+</div>

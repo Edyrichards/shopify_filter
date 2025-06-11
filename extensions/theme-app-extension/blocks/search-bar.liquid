@@ -1,0 +1,215 @@
+{% comment %}
+  Boost AI Search Bar - Theme App Block
+  Can be added to any section in Shopify 2.0 themes
+{% endcomment %}
+
+{% schema %}
+{
+  "name": "Boost Search Bar",
+  "target": "section",
+  "stylesheet": "search-bar.css",
+  "javascript": "search-bar.js",
+  "settings": [
+    {
+      "type": "text",
+      "id": "placeholder",
+      "label": "Search placeholder",
+      "default": "Search products with AI..."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_filters",
+      "label": "Show advanced filters",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_voice_search",
+      "label": "Enable voice search",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_visual_search",
+      "label": "Enable visual search",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout style",
+      "options": [
+        { "value": "minimal", "label": "Minimal" },
+        { "value": "standard", "label": "Standard" },
+        { "value": "advanced", "label": "Advanced with filters" }
+      ],
+      "default": "standard"
+    },
+    {
+      "type": "select",
+      "id": "results_layout",
+      "label": "Results layout",
+      "options": [
+        { "value": "grid", "label": "Grid" },
+        { "value": "list", "label": "List" },
+        { "value": "masonry", "label": "Masonry" }
+      ],
+      "default": "grid"
+    },
+    {
+      "type": "range",
+      "id": "results_per_page",
+      "label": "Results per page",
+      "min": 6,
+      "max": 50,
+      "step": 2,
+      "default": 20
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#007ace"
+    }
+  ]
+}
+{% endschema %}
+
+<div 
+  class="boost-search-container" 
+  data-layout="{{ block.settings.layout }}"
+  data-results-layout="{{ block.settings.results_layout }}"
+  data-results-per-page="{{ block.settings.results_per_page }}"
+  data-shop="{{ shop.permanent_domain }}"
+  data-accent-color="{{ block.settings.accent_color }}"
+  style="--boost-accent-color: {{ block.settings.accent_color }};"
+>
+  <!-- Main Search Interface -->
+  <div class="boost-search-interface">
+    <div class="boost-search-input-container">
+      <input 
+        type="text" 
+        id="boost-search-input" 
+        placeholder="{{ block.settings.placeholder }}"
+        class="boost-search-input"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      
+      <!-- Search Actions -->
+      <div class="boost-search-actions">
+        {% if block.settings.enable_voice_search %}
+          <button type="button" id="boost-voice-search" class="boost-action-btn" title="Voice Search">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+          </button>
+        {% endif %}
+        
+        {% if block.settings.enable_visual_search %}
+          <button type="button" id="boost-visual-search" class="boost-action-btn" title="Visual Search">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21,15 16,10 5,21"></polyline>
+            </svg>
+          </button>
+        {% endif %}
+        
+        <button type="button" id="boost-search-btn" class="boost-action-btn boost-search-submit" title="Search">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Search Suggestions -->
+    <div id="boost-suggestions" class="boost-suggestions" style="display: none;"></div>
+
+    <!-- Quick Filters -->
+    {% if block.settings.show_filters %}
+      <div id="boost-quick-filters" class="boost-quick-filters" style="display: none;">
+        <div class="boost-filter-tabs">
+          <button class="boost-filter-tab active" data-filter="all">All</button>
+          <button class="boost-filter-tab" data-filter="categories">Categories</button>
+          <button class="boost-filter-tab" data-filter="price">Price</button>
+          <button class="boost-filter-tab" data-filter="brands">Brands</button>
+          <button class="boost-filter-tab" data-filter="more">More</button>
+        </div>
+        
+        <div class="boost-filter-content">
+          <div id="boost-filter-all" class="boost-filter-panel active">
+            <div class="boost-active-filters"></div>
+          </div>
+          <div id="boost-filter-categories" class="boost-filter-panel"></div>
+          <div id="boost-filter-price" class="boost-filter-panel">
+            <div class="boost-price-range">
+              <input type="range" id="boost-price-min" class="boost-range-input">
+              <input type="range" id="boost-price-max" class="boost-range-input">
+              <div class="boost-price-display">
+                <span id="boost-price-min-display">$0</span>
+                <span>-</span>
+                <span id="boost-price-max-display">$1000</span>
+              </div>
+            </div>
+          </div>
+          <div id="boost-filter-brands" class="boost-filter-panel"></div>
+          <div id="boost-filter-more" class="boost-filter-panel"></div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Results Container -->
+  <div id="boost-results-container" class="boost-results-container">
+    <!-- AI Recommendations -->
+    <div id="boost-recommendations" class="boost-recommendations" style="display: none;">
+      <h3>Recommended for you</h3>
+      <div class="boost-recommendations-grid"></div>
+    </div>
+
+    <!-- Search Results -->
+    <div id="boost-search-results" class="boost-search-results"></div>
+    
+    <!-- Pagination -->
+    <div id="boost-pagination" class="boost-pagination" style="display: none;"></div>
+  </div>
+
+  <!-- Loading States -->
+  <div id="boost-loading" class="boost-loading" style="display: none;">
+    <div class="boost-loading-spinner"></div>
+    <p>Searching with AI...</p>
+  </div>
+
+  <!-- Visual Search Modal -->
+  {% if block.settings.enable_visual_search %}
+    <div id="boost-visual-modal" class="boost-modal" style="display: none;">
+      <div class="boost-modal-content">
+        <div class="boost-modal-header">
+          <h3>Visual Search</h3>
+          <button type="button" id="boost-close-visual" class="boost-close-btn">&times;</button>
+        </div>
+        <div class="boost-modal-body">
+          <div id="boost-camera-container" class="boost-camera-container">
+            <video id="boost-camera" autoplay playsinline></video>
+            <canvas id="boost-camera-canvas" style="display: none;"></canvas>
+            <div class="boost-camera-controls">
+              <button type="button" id="boost-capture-btn" class="boost-btn boost-btn-primary">Capture</button>
+              <input type="file" id="boost-image-upload" accept="image/*" style="display: none;">
+              <button type="button" id="boost-upload-btn" class="boost-btn boost-btn-secondary">Upload Image</button>
+            </div>
+          </div>
+          <div id="boost-visual-results" class="boost-visual-results"></div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Hidden file input for visual search -->
+<input type="file" id="boost-visual-upload" accept="image/*" style="display: none;">

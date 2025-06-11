@@ -1,0 +1,9 @@
+api_version = "2023-10"
+
+[[extensions]]
+type = "theme_app_extension"
+name = "Boost AI Search & Filter"
+handle = "boost-search-filter"
+
+[extensions.settings]
+include_app_block = true
